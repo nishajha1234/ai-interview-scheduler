@@ -8,6 +8,8 @@ import React, { useEffect, useState } from 'react'
 function Login() {
 
       const router = useRouter();
+      const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+
       
 
  useEffect(() => {
