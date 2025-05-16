@@ -32,7 +32,9 @@ if (!checked) return null;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'https://ai-interview-scheduler-nisha.vercel.app/dashboard',
+        redirectTo: isLocalhost
+        ? 'http://localhost:3000/dashboard'
+        : 'https://ai-interview-scheduler-nisha.vercel.app/dashboard',
       },
     });
 
