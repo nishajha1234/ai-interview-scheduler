@@ -12,7 +12,8 @@ export async function POST(req){
           })
     
           const completion = await openai.chat.completions.create({
-            model: "nousresearch/deephermes-3-mistral-24b-preview:free",
+            model: "nousresearch/deephermes-3-llama-3-8b-preview:free",
+            // model: "nousresearch/deephermes-3-mistral-24b-preview:free",
             messages: [
               { role: "user", content: FINAL_PROMPT }
             ],

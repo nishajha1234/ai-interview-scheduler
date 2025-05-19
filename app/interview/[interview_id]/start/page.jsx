@@ -22,7 +22,7 @@ function StartInterview() {
     const toastIdRef = useRef(null);
     const [authorized, setAuthorized] = useState(null);
     const [muted, setMuted] = useState(false);
-
+    const [vapiConnected, setVapiConnected] = useState(false);
 
     const callStartedRef = useRef(false);
     const callEndedRef = useRef(false);
@@ -32,36 +32,39 @@ function StartInterview() {
     const [callActive, setCallActive] = useState(false);
 
     const toggleMute = () => {
-    const vapi = vapiRef.current;
-    if (!vapi) return;
-const newMutedState = !muted;
-    vapi.setMuted(newMutedState);
-    toast(newMutedState ? "Mic muted" : "Mic unmuted");
-    setMuted(newMutedState);
-
-};
-
-useEffect(() => {
-  const handlePopState = () => {
-    // Prevent back navigation
-    window.history.pushState(null, '', window.location.href);
-    toast.error("Back navigation is disabled during the interview process.");
-  };
-
-  window.history.pushState(null, '', window.location.href); // push current page
-  window.addEventListener('popstate', handlePopState);
-
-  return () => {
-    window.removeEventListener('popstate', handlePopState);
-  };
-}, []);
-
-useEffect(() => {
-  const allowed = sessionStorage.getItem('interview_allowed');
-  if (!allowed) {
-    router.replace(`/interview/${interview_id}`);
+        const vapi = vapiRef.current;
+        if (!vapi || !vapi.call) {  
+    toast("No active call to mute/unmute");
+    return;
   }
-}, []);
+        const newMutedState = !muted;
+        vapi.setMuted(newMutedState);
+        toast(newMutedState ? "Mic muted" : "Mic unmuted");
+        setMuted(newMutedState);
+
+    };
+
+    useEffect(() => {
+        const handlePopState = () => {
+            // Prevent back navigation
+            window.history.pushState(null, '', window.location.href);
+            toast.error("Back navigation is disabled during the interview process.");
+        };
+
+        window.history.pushState(null, '', window.location.href);
+        window.addEventListener('popstate', handlePopState);
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+        };
+    }, []);
+
+    useEffect(() => {
+        const allowed = sessionStorage.getItem('interview_allowed');
+        if (!allowed) {
+            router.replace(`/interview/${interview_id}`);
+        }
+    }, []);
 
 
 
@@ -71,7 +74,6 @@ useEffect(() => {
         }
         const vapi = vapiRef.current;
         if (!toastIdRef.current) {
-            toastIdRef.current = toast.loading("Connecting to AI Recruiter ...");
         }
 
         const handleMessage = (message) => {
@@ -99,6 +101,7 @@ useEffect(() => {
                 callStartedRef.current = true;
                 sessionStorage.setItem('interview_started', 'true');
                 setCallActive(true);
+                setVapiConnected(true);
             }
         });
 
@@ -257,6 +260,16 @@ useEffect(() => {
     }
     if (authorized === null) return null;
     if (authorized === false) return null;
+    if (!vapiConnected) {
+        return (
+            <div className="min-h-screen flex justify-center items-center bg-gray-100 px-4">
+                <div className="flex flex-col items-center gap-3">
+                    <Loader2Icon className="animate-spin h-12 w-12 text-primary" />
+                    <p className="text-lg font-semibold text-gray-700">Connecting to AI Recruiter...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className='min-h-screen bg-gray-100 px-4 py-10 sm:px-10 lg:px-32 xl:px-56'>
@@ -289,10 +302,10 @@ useEffect(() => {
             </div>
 
             <div className='flex items-center gap-5 justify-center mt-8 flex-wrap'>
-                <Mic 
-    className={`h-12 w-12 p-3 rounded-full cursor-pointer ${muted ? 'bg-red-400' : 'bg-green-500'} text-white`}
-    onClick={toggleMute}
-/>
+                <Mic
+                    className={`h-12 w-12 p-3 rounded-full cursor-pointer ${muted ? 'bg-red-400' : 'bg-green-500'} text-white`}
+                    onClick={toggleMute}
+                />
                 {!loading ? (
                     <Phone className='h-12 w-12 p-3 bg-red-500 text-white rounded-full cursor-pointer' onClick={() => stopInterview()} />
                 ) : (
