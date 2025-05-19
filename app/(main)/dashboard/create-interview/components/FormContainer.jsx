@@ -13,7 +13,11 @@ import { Button } from '@/components/ui/button'
 import { ArrowRight } from 'lucide-react'
 
 
-function FormContainer({ onHandleInputChange, GoToNext }) {
+function FormContainer({ onHandleInputChange, GoToNext, setIsGenerating }) {
+
+    const handleGenerateClick = () => {
+        GoToNext();
+    }
 
     const [interviewType, setInterviewType] = useState([]);
     useEffect(() => {
@@ -22,12 +26,12 @@ function FormContainer({ onHandleInputChange, GoToNext }) {
         }
     }, [interviewType])
 
-    const AddInterviewType=(type)=>{
-        const data=interviewType.includes(type);
-        if(!data){
-           setInterviewType(prev => [...prev, type])
-        }else{
-            const result=interviewType.filter(item=>item!=type);
+    const AddInterviewType = (type) => {
+        const data = interviewType.includes(type);
+        if (!data) {
+            setInterviewType(prev => [...prev, type])
+        } else {
+            const result = interviewType.filter(item => item != type);
             setInterviewType(result);
         }
     }
@@ -62,15 +66,15 @@ function FormContainer({ onHandleInputChange, GoToNext }) {
                 <h2 className='text-sm font-medium'>Interview Type</h2>
                 <div className='flex gap-3 flex-wrap mt-2'>
                     {InterviewType.map((type, index) => (
-                        <div key={index} className={`flex items-center cursor-pointer gap-2 p-1 px-2 bg-white border border-gray-300 rounded-2xl hover:bg-secondary ${interviewType.includes(type.title)&& 'bg-blue-100 text-primary'}`} onClick={() => AddInterviewType(type.title)}>
+                        <div key={index} className={`flex items-center cursor-pointer gap-2 p-1 px-2 bg-white border border-gray-300 rounded-2xl hover:bg-secondary ${interviewType.includes(type.title) && 'bg-blue-100 text-primary'}`} onClick={() => AddInterviewType(type.title)}>
                             <type.icon className='h-4 w-4' />
                             <span>{type.title}</span>
                         </div>
                     ))}
                 </div>
             </div>
-            <div className='mt-10 flex justify-end' onClick={()=>GoToNext()}>
-                <Button className="cursor-pointer">Generate Question <ArrowRight /></Button>
+            <div className='mt-10 flex justify-end' onClick={() => GoToNext()}>
+                <Button onClick={handleGenerateClick} className="cursor-pointer">Generate Question <ArrowRight /></Button>
             </div>
         </div>
     )

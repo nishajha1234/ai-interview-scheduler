@@ -9,36 +9,27 @@ export default function UserProfile() {
   const { user, loading, setUser } = useUser();
   const router = useRouter();
 
-  // Handle sign-out logic
   const handleSignOut = async () => {
-    // Clear Supabase session
     await supabase.auth.signOut();
-    setUser(null); // Clear user context
+    setUser(null);
     localStorage.removeItem('user');
-    router.replace('/auth'); // Redirect to auth page
+    router.replace('/auth');
   };
 
-  // Redirect to /auth if user is not logged in
-useEffect(() => {
-  if (!loading && !user) {
-    router.replace('/auth');
-  }
-}, [user, loading]);
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/auth');
+    }
+  }, [user, loading]);
 
-if (loading) {
-  return <div>Loading...</div>; // Don't render anything until loading is false
-}
-
-if (!user) {
-  return null; // Prevents any flashing of content
-}
+  if (loading) return <div>Loading...</div>;
+  if (!user) return null;
 
   return (
-    <div className="h-[60vh] flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-xl shadow-md w-[90%] max-w-sm ">
-        <div className='flex flex-2 gap-5'>
-        {user?.picture && (
-          <div className="flex justify-center mb-4">
+    <div className="min-h-[60vh] flex items-center justify-center bg-gray-100 px-4">
+      <div className="bg-white p-6 sm:p-8 rounded-xl shadow-md w-full max-w-md">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-6">
+          {user?.picture && (
             <Image
               src={user.picture}
               alt="User Avatar"
@@ -46,13 +37,12 @@ if (!user) {
               height={80}
               className="rounded-full object-cover"
             />
+          )}
+          <div className="text-center mt-4 sm:text-left">
+            <h2 className="text-xl font-bold">{user?.name || 'No Name'}</h2>
+            <p className="text-gray-500">{user?.email || 'No Email'}</p>
           </div>
-        )}
-        <div className='flex flex-col pt-3'>
-        <h2 className="text-xl font-bold">{user?.name || 'No Name'}</h2>
-        <p className="text-gray-500 mb-6">{user?.email || 'No Email'}</p>
         </div>
-</div>
         <button
           onClick={handleSignOut}
           className="w-full bg-white border hover:bg-gray-100 text-black font-medium py-2 px-4 rounded-lg shadow-sm cursor-pointer"

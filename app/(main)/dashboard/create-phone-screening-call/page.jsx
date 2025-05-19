@@ -1,4 +1,5 @@
-"use client"
+"use client";
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -8,9 +9,12 @@ import { ArrowLeft } from 'lucide-react';
 import { supabase } from '@/Services/supabaseClient';
 import TimeInputWithAMPM from './components/Time';
 import { toast } from 'sonner';
+import { useUser } from '@/app/provider';
 
 export default function CreatePhoneScreening() {
     const router = useRouter();
+    const { user, loading } = useUser();
+
     const [form, setForm] = useState({
         name: '',
         email: '',
@@ -18,9 +22,14 @@ export default function CreatePhoneScreening() {
         date: '',
         time: '',
     });
-    const [loading, setLoading] = useState(false);
+    const [loadingForm, setLoadingForm] = useState(false);
 
-    // Parse query params manually once on mount
+    useEffect(() => {
+        if (!loading && !user) {
+            router.replace('/auth');
+        }
+    }, [user, loading, router]);
+
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const params = new URLSearchParams(window.location.search);
@@ -36,168 +45,129 @@ export default function CreatePhoneScreening() {
     };
 
     const validateForm = () => {
-    const { name, email, phone, date, time } = form;
+        const { name, email, phone, date, time } = form;
 
-    if (!(name && email && phone && date && time)) {
-        toast.error('All fields are required.');
-        return false;
-    }
+        if (!(name && email && phone && date && time)) {
+            toast.error('All fields are required.');
+            return false;
+        }
 
-    const nameRegex = /^[a-zA-Z ]{2,}$/;
-    if (!nameRegex.test(name.trim())) {
-        toast.error('Enter a valid name (only letters and spaces).');
-        return false;
-    }
+        const nameRegex = /^[a-zA-Z ]{2,}$/;
+        if (!nameRegex.test(name.trim())) {
+            toast.error('Enter a valid name (only letters and spaces).');
+            return false;
+        }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        toast.error('Enter a valid email address.');
-        return false;
-    }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            toast.error('Enter a valid email address.');
+            return false;
+        }
 
-    const phoneRegex = /^\d{10,12}$/
-    if (!phoneRegex.test(phone)) {
-        toast.error('Enter a valid phone number.');
-        return false;
-    }
+        const phoneRegex = /^\d{10,12}$/;
+        if (!phoneRegex.test(phone)) {
+            toast.error('Enter a valid phone number.');
+            return false;
+        }
 
-    const timeParts = time.split(' ');
-    if (timeParts.length !== 2) {
-        toast.error('Invalid time format.');
-        return false;
-    }
+        const timeParts = time.split(' ');
+        if (timeParts.length !== 2) {
+            toast.error('Invalid time format.');
+            return false;
+        }
 
-    const [hours, minutes] = timeParts[0].split(':');
-    const ampm = timeParts[1];
+        const [hours, minutes] = timeParts[0].split(':');
+        const ampm = timeParts[1];
 
-    const formattedTime = new Date(date);
-    formattedTime.setHours(
-        ampm === 'PM' && hours !== '12' ? parseInt(hours) + 12 : parseInt(hours)
-    );
-    formattedTime.setMinutes(parseInt(minutes));
+        const formattedTime = new Date(date);
+        formattedTime.setHours(
+            ampm === 'PM' && hours !== '12' ? parseInt(hours) + 12 : parseInt(hours)
+        );
+        formattedTime.setMinutes(parseInt(minutes));
 
-    const now = new Date();
-    if (formattedTime <= now) {
-        toast.error('Scheduled time must be in the future.');
-        return false;
-    }
+        const now = new Date();
+        if (formattedTime <= now) {
+            toast.error('Scheduled time must be in the future.');
+            return false;
+        }
 
-    return true;
-};
+        return true;
+    };
 
     const handleSubmit = async (e) => {
-  e.preventDefault();
+        e.preventDefault();
 
-  if (!validateForm()) {
-    return;
-  }
+        if (!validateForm()) return;
 
-  // Parse hour from form.time ("hh:mm AM/PM" format)
-  const timeParts = form.time.split(' ');
-  const [hourStr] = timeParts[0].split(':');
-  let hour = parseInt(hourStr);
+        const timeParts = form.time.split(' ');
+        const [hourStr] = timeParts[0].split(':');
+        let hour = parseInt(hourStr);
 
-  // Convert to 24h format for easy check
-  if (timeParts[1] === 'PM' && hour !== 12) hour += 12;
-  if (timeParts[1] === 'AM' && hour === 12) hour = 0;
+        if (timeParts[1] === 'PM' && hour !== 12) hour += 12;
+        if (timeParts[1] === 'AM' && hour === 12) hour = 0;
 
-  if (hour >= 0 && hour < 6) {
-    // Show warning toast and wait for user action
-    toast("Are you sure you want to schedule this interview at night between 12 AM – 6 AM ?", {
-      action: {
-        label: "Yes, Proceed",
-        onClick: async () => {
-          setLoading(true);
-          try {
+        if (hour >= 0 && hour < 6) {
+            toast("Are you sure you want to schedule this interview at night between 12 AM – 6 AM ?", {
+                action: {
+                    label: "Yes, Proceed",
+                    onClick: async () => {
+                        await submitScreening();
+                    },
+                },
+            });
+            return;
+        }
+
+        await submitScreening();
+    };
+
+    const submitScreening = async () => {
+        setLoadingForm(true);
+        try {
             const {
-              data: { user },
-              error: userError,
+                data: { user: currentUser },
+                error: userError,
             } = await supabase.auth.getUser();
 
-            if (userError || !user) {
-              toast.error('User not authenticated');
-              setLoading(false);
-              return;
+            if (userError || !currentUser) {
+                toast.error('User not authenticated');
+                setLoadingForm(false);
+                return;
             }
 
-            const { data, error } = await supabase.from('candidates').insert([
-              {
-                name: form.name,
-                email: form.email,
-                phone: form.phone,
-                screening_date: form.date,
-                screening_time: form.time,
-                user_id: user.id,
-              },
+            const { error } = await supabase.from('candidates').insert([
+                {
+                    name: form.name,
+                    email: form.email,
+                    phone: form.phone,
+                    screening_date: form.date,
+                    screening_time: form.time,
+                    user_id: currentUser.id,
+                },
             ]);
 
             if (error) {
-              console.error('Supabase insert error:', error);
-              toast.error('Supabase insert error: ' + error.message);
-              setLoading(false);
-              return;
+                console.error('Supabase insert error:', error);
+                toast.error('Supabase insert error: ' + error.message);
+                setLoadingForm(false);
+                return;
             }
 
             toast.success('Phone screening scheduled successfully!');
             router.push('/scheduled-calls');
-          } catch (err) {
+        } catch (err) {
             console.error('Unexpected error:', err);
             toast.error('Failed to schedule the phone screening. Please try again.');
-          } finally {
-            setLoading(false);
-          }
-        },
-      },
-    });
+        } finally {
+            setLoadingForm(false);
+        }
+    };
 
-    return; // Stop here until user clicks toast action
-  }
-
-  // Normal submit flow if time is NOT between 12AM-6AM
-  setLoading(true);
-  try {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      toast.error('User not authenticated');
-      setLoading(false);
-      return;
-    }
-
-    const { data, error } = await supabase.from('candidates').insert([
-      {
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
-        screening_date: form.date,
-        screening_time: form.time,
-        user_id: user.id,
-      },
-    ]);
-
-    if (error) {
-      console.error('Supabase insert error:', error);
-      toast.error('Supabase insert error: ' + error.message);
-      setLoading(false);
-      return;
-    }
-
-    toast.success('Phone screening scheduled successfully!');
-    router.push('/scheduled-calls');
-  } catch (err) {
-    console.error('Unexpected error:', err);
-    toast.error('Failed to schedule the phone screening. Please try again.');
-  } finally {
-    setLoading(false);
-  }
-};
-
+    if (loading) return <div>Loading...</div>;
+    if (!user) return null;
 
     return (
-        <div className="px-10 md:px-24 lg:px-44 xl:px-56">
+        <div className="px-2 sm:px-4 md:px-6 lg:px-15 xl:px-55 pt-4">
             <div className="flex gap-5 items-center mb-7">
                 <ArrowLeft onClick={() => router.back()} className="cursor-pointer" />
                 <h2 className="font-bold text-2xl">Schedule Phone Screening Call</h2>
@@ -239,7 +209,7 @@ export default function CreatePhoneScreening() {
                             onChange={handleChange}
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div>
                             <Label htmlFor="date" className="text-sm font-medium">Date</Label>
                             <Input
@@ -260,8 +230,8 @@ export default function CreatePhoneScreening() {
                         </div>
                     </div>
                     <div className="pt-4 mt-5 text-center">
-                        <Button className="cursor-pointer" type="submit" disabled={loading}>
-                            {loading ? 'Scheduling...' : 'Schedule Phone Screening Call'}
+                        <Button className="cursor-pointer" type="submit" disabled={loadingForm}>
+                            {loadingForm ? 'Scheduling...' : 'Schedule Phone Screening Call'}
                         </Button>
                     </div>
                 </form>

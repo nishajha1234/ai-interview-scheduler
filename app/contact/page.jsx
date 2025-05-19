@@ -10,12 +10,12 @@ export default function ContactPage() {
         <section className="min-h-[60vh] py-20 px-6 md:px-20">
           <h1 className="text-4xl font-bold mb-6">Contact Us</h1>
           <p className="text-gray-700 mb-4">
-            We’d love to hear from you. Whether you have a question about features, trials, pricing, or anything else, our team is ready to answer all your questions.
+            We'd love to hear from you. Whether you have a question about features, trials, pricing, or anything else, our team is ready to answer all your questions.
           </p>
           <div className="text-gray-600">
-            <p>Email: <a href="mailto:support@aicruiter.com" className="text-blue-600 hover:underline">support@aicruiter.com</a></p>
-            <p>Phone: +1 (555) 123-4567</p>
-            <p>Address: 123 AI Street, San Francisco, CA</p>
+            <p>Email: <a href="mailto:abc@xyz.com" className="text-blue-600 hover:underline">abc@xyz.com</a></p>
+            <p>Phone: +91 00000 00000</p>
+            <p>Address: xyz lane, abc city</p>
           </div>
         </section>
       </main>

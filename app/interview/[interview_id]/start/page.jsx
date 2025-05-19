@@ -20,6 +20,9 @@ function StartInterview() {
     const vapiRef = useRef(null);
     const [feedbackGenerated, setFeedbackGenerated] = useState(false);
     const toastIdRef = useRef(null);
+    const [authorized, setAuthorized] = useState(null);
+    const [muted, setMuted] = useState(false);
+
 
     const callStartedRef = useRef(false);
     const callEndedRef = useRef(false);
@@ -27,6 +30,17 @@ function StartInterview() {
     const speechStartRef = useRef(false);
     const speechEndRef = useRef(false);
     const [callActive, setCallActive] = useState(false);
+
+    const toggleMute = () => {
+    const vapi = vapiRef.current;
+    if (!vapi) return;
+const newMutedState = !muted;
+    vapi.setMuted(newMutedState);
+    toast(newMutedState ? "Mic muted" : "Mic unmuted");
+    setMuted(newMutedState);
+
+};
+
 
     useEffect(() => {
         if (!vapiRef.current) {
@@ -93,7 +107,6 @@ function StartInterview() {
             }
         });
 
-        // Clean up the listener
         return () => {
             vapi.off("message", handleMessage);
             vapi.off('call-start', () => console.log("END"));
@@ -106,6 +119,16 @@ function StartInterview() {
     useEffect(() => {
         interviewInfo && startCall();
     }, [interviewInfo]);
+
+    useEffect(() => {
+        if (!interviewInfo) {
+            router.replace('/interview/' + interview_id);
+        } else {
+            setAuthorized(true);
+        }
+    }, [interviewInfo, interview_id, router]);
+
+
 
     const startCall = () => {
         let questionList;
@@ -175,22 +198,20 @@ function StartInterview() {
         if (feedbackGenerated) return;
         setFeedbackGenerated(true);
         const result = await axios.post('/api/ai-feedback', {
-            conversation: conversation
+            conversation: conversation,
+            jobTitle: interviewInfo?.interviewData?.jobPosition
         })
         console.log(result?.data);
         const Content = result.data.content;
         const FINAL_CONTENT = Content.replace('```json', '').replace('```', '')
         console.log(FINAL_CONTENT);
 
-         const parsedContent = JSON.parse(FINAL_CONTENT);
+        const parsedContent = JSON.parse(FINAL_CONTENT);
 
-    const { technicalSkills, communication, problemSolving, experience } = parsedContent?.feedback?.rating;
-    const overallRating = ((technicalSkills + communication + problemSolving + experience) / 4).toFixed(2);
-    parsedContent.feedback.rating.overallRating = parseFloat(overallRating);
+        const { technicalSkills, communication, problemSolving, experience } = parsedContent?.feedback?.rating;
+        const overallRating = ((technicalSkills + communication + problemSolving + experience) / 4).toFixed(2);
+        parsedContent.feedback.rating.overallRating = parseFloat(overallRating);
 
-  
-        
-        // Save to Database
         const { data, error } = await supabase
             .from('interview-feedback')
             .insert([
@@ -206,43 +227,63 @@ function StartInterview() {
             .select()
         console.log(data);
         toast.dismiss("feedback-toast");
-        router.replace('/interview/' + interview_id + "/completed");
+        sessionStorage.setItem('interview_started', 'true');
+        router.push('/interview/' + interview_id + "/completed");
 
     }
+    if (authorized === null) return null;
+    if (authorized === false) return null;
 
     return (
-        <div className='p-20 lg:px-48 xl:px-56'>
-            <h2 className='font-bold text-xl flex justify-between'>AI Interview Session
-                <span className='flex gap-2 items-center'>
+        <div className='min-h-screen bg-gray-100 px-4 py-10 sm:px-10 lg:px-32 xl:px-56'>
+            <h2 className='font-bold text-xl flex flex-col sm:flex-row justify-between gap-3 sm:items-center'>
+                AI Interview Session
+                <span className='flex gap-2 items-center text-base'>
                     <Timer />
                     <TimerComponent start={callActive} />
                 </span>
             </h2>
 
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-7 mt-5'>
-                <div className='bg-white h-[400px] rounded-lg border flex flex-col gap-3 items-center justify-center'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mt-6'>
+                <div className='bg-white min-h-[300px] sm:min-h-[350px] lg:min-h-[400px] rounded-lg border flex flex-col gap-3 items-center justify-center p-6'>
                     <div className='relative'>
                         {!activeUser && <span className='absolute inset-0 rounded-full bg-blue-500 opacity-75 animate-ping' />}
                         <Image src={'/ai.jpg'} alt='ai' width={100} height={100} className='w-[60px] h-[60px] rounded-full object-cover' />
                     </div>
-                    <h2>AI Recruiter</h2>
+                    <h2 className='text-lg font-medium'>AI Recruiter</h2>
                 </div>
-                <div className='bg-white h-[400px] rounded-lg border flex flex-col gap-3 items-center justify-center'>
+
+                <div className='bg-white min-h-[300px] sm:min-h-[350px] lg:min-h-[400px] rounded-lg border flex flex-col gap-3 items-center justify-center p-6'>
                     <div className='relative'>
                         {activeUser && <span className='absolute inset-0 rounded-full bg-blue-500 opacity-75 animate-ping' />}
-                        <h2 className='text-2xl bg-primary text-white h-[50px] w-[50px] rounded-full flex items-center justify-center'>{interviewInfo?.userName[0]}</h2>
+                        <h2 className='text-2xl bg-primary text-white h-[50px] w-[50px] rounded-full flex items-center justify-center'>
+                            {interviewInfo?.userName[0]}
+                        </h2>
                     </div>
-                    <h2 className=''>{interviewInfo?.userName}</h2>
+                    <h2 className='text-lg font-medium'>{interviewInfo?.userName}</h2>
                 </div>
             </div>
 
-            <div className='flex items-center gap-5 justify-center mt-7'>
-                <Mic className='h-12 w-12 p-3 bg-gray-500 text-white rounded-full cursor-pointer' />
-                {!loading ? <Phone className='h-12 w-12 p-3 bg-red-500 text-white rounded-full cursor-pointer' onClick={() => stopInterview()} /> : <Loader2Icon className='animate-spin' />}
+            <div className='flex items-center gap-5 justify-center mt-8 flex-wrap'>
+                <Mic 
+    className={`h-12 w-12 p-3 rounded-full cursor-pointer ${muted ? 'bg-red-400' : 'bg-green-500'} text-white`}
+    onClick={toggleMute}
+/>
+                {!loading ? (
+                    <Phone className='h-12 w-12 p-3 bg-red-500 text-white rounded-full cursor-pointer' onClick={() => stopInterview()} />
+                ) : (
+                    <Loader2Icon className='animate-spin h-12 w-12 text-gray-500' />
+                )}
             </div>
-            {callActive && (<h2 className='text-sm text-gray-400 text-center mt-5'>Interview in Progress...</h2>)}
+
+            {callActive && (
+                <h2 className='text-sm text-gray-400 text-center mt-5'>
+                    Interview in Progress...
+                </h2>
+            )}
         </div>
-    )
+    );
+
 }
 
 export default StartInterview

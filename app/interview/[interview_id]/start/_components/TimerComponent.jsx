@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 
 function TimerComponent({ start }) {
     const [time, setTime] = useState(0);
-    
+
     useEffect(() => {
         let interval;
 
