@@ -9,6 +9,22 @@ const InterviewComplete = () => {
   const { interview_id } = useParams();
 
   useEffect(() => {
+  const handlePopState = () => {
+    // Prevent back navigation
+    window.history.pushState(null, '', window.location.href);
+    toast.error("Back navigation is disabled during the interview process.");
+  };
+
+  window.history.pushState(null, '', window.location.href); // push current page
+  window.addEventListener('popstate', handlePopState);
+
+  return () => {
+    window.removeEventListener('popstate', handlePopState);
+  };
+}, []);
+
+
+  useEffect(() => {
     const interviewStarted = sessionStorage.getItem('interview_started');
 
     if (interviewStarted === 'true') {

@@ -41,6 +41,29 @@ const newMutedState = !muted;
 
 };
 
+useEffect(() => {
+  const handlePopState = () => {
+    // Prevent back navigation
+    window.history.pushState(null, '', window.location.href);
+    toast.error("Back navigation is disabled during the interview process.");
+  };
+
+  window.history.pushState(null, '', window.location.href); // push current page
+  window.addEventListener('popstate', handlePopState);
+
+  return () => {
+    window.removeEventListener('popstate', handlePopState);
+  };
+}, []);
+
+useEffect(() => {
+  const allowed = sessionStorage.getItem('interview_allowed');
+  if (!allowed) {
+    router.replace(`/interview/${interview_id}`);
+  }
+}, []);
+
+
 
     useEffect(() => {
         if (!vapiRef.current) {
@@ -74,6 +97,7 @@ const newMutedState = !muted;
                 console.log("Call has started.");
                 toast('Call Connected...');
                 callStartedRef.current = true;
+                sessionStorage.setItem('interview_started', 'true');
                 setCallActive(true);
             }
         });

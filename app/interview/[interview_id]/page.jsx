@@ -92,6 +92,7 @@ function Interview() {
       interviewData: Interviews[0]
     });
     router.push('/interview/' + interview_id + '/start');
+    sessionStorage.setItem('interview_allowed', 'true');
     setLoading(false);
   };
 

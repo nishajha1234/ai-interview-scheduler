@@ -24,7 +24,7 @@ export default function Header() {
       </nav>
 
       <div className="hidden md:flex items-center gap-3">
-        <Button onClick={() => router.push('/auth')} className="bg-blue-600 text-white px-4 py-2 text-sm rounded-lg hover:bg-blue-700">
+        <Button onClick={() => router.push('/auth')} className="bg-blue-600 text-white px-4 py-2 text-sm rounded-lg hover:bg-blue-700 cursor-pointer">
           Dashboard
         </Button>
       </div>
