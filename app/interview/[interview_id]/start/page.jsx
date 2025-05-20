@@ -221,18 +221,19 @@ function StartInterview() {
         }
     }
 
-    const GenerateFeedback = async () => {
-        if (feedbackGenerated) return;
-        setFeedbackGenerated(true);
+const GenerateFeedback = async () => {
+    if (feedbackGenerated) return;
+    setFeedbackGenerated(true);
+
+    try {
         const result = await axios.post('/api/ai-feedback', {
             conversation: conversation,
             jobTitle: interviewInfo?.interviewData?.jobPosition
-        })
+        });
+
         console.log(result?.data);
         const Content = result.data.content;
-        const FINAL_CONTENT = Content.replace('```json', '').replace('```', '')
-        console.log(FINAL_CONTENT);
-
+        const FINAL_CONTENT = Content.replace('```json', '').replace('```', '');
         const parsedContent = JSON.parse(FINAL_CONTENT);
 
         const { technicalSkills, communication, problemSolving, experience } = parsedContent?.feedback?.rating;
@@ -251,13 +252,20 @@ function StartInterview() {
                     recommended: parsedContent.feedback.Recommendation ?? false,
                 },
             ])
-            .select()
-        console.log(data);
+            .select();
+
         toast.dismiss("feedback-toast");
         sessionStorage.setItem('interview_started', 'true');
         router.push('/interview/' + interview_id + "/completed");
 
+    } catch (error) {
+        console.error("Feedback generation failed:", error);
+        toast.dismiss("feedback-toast");
+        toast.error("Regive the interview, there was some error.");
+        router.replace(`/interview/${interview_id}`);
     }
+};
+
     if (authorized === null) return null;
     if (authorized === false) return null;
     if (!vapiConnected) {

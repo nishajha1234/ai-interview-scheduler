@@ -110,6 +110,7 @@ If don't have any conversation from user side give 0 rating in all and recommend
 If there are less conversation from user or not answered question give them low marks no need to give rating high even if user is not giving correct answer
 
 Do not include any introduction, conclusion, or extra text.
+If can't find any conversation don't throw any mesasge just give 0 rating and false recommendation
 I DONT WANT ANYTHING IN STARTING LIKE HERE IS THE FEEDBACK IN JSON FORMAT
 I WANT AN JSON FILE ONLY NOTHING ELSE
 {
