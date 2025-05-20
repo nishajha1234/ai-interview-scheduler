@@ -261,7 +261,7 @@ const GenerateFeedback = async () => {
     } catch (error) {
         console.error("Feedback generation failed:", error);
         toast.dismiss("feedback-toast");
-        toast.error("Regive the interview, there was some error.");
+        toast.error("Interview failed. Please try again or come back tomorrow.");
         router.replace(`/interview/${interview_id}`);
     }
 };
