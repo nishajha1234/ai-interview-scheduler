@@ -1,11 +1,13 @@
-"use client"
+"use client";
 import { UserDetailContext } from '@/context/UserDetailContext';
 import { supabase } from '@/Services/supabaseClient';
 import React, { useContext, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 function Provider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -15,7 +17,6 @@ function Provider({ children }) {
         const user = data?.user;
 
         if (!user) {
-          console.log('User not ready yet');
           setUser(null);
           setLoading(false);
           return;
@@ -64,6 +65,14 @@ function Provider({ children }) {
     };
   }, []);
 
+  // Redirect to /auth if loading finished and user is null
+  useEffect(() => {
+    if (!loading && user === null) {
+      router.push('/auth');
+    }
+  }, [loading, user, router]);
+
+  // While loading or user exists, just render children (dashboard stays visible)
   return (
     <UserDetailContext.Provider value={{ user, setUser, loading }}>
       {children}
