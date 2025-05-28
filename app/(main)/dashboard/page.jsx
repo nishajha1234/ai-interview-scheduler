@@ -10,7 +10,7 @@ function Dashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && user==null) {
+    if (!loading && !user) {
       router.replace('/auth');
     }
   }, [user, loading, router]);
