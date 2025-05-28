@@ -22,11 +22,11 @@ Dear Candidate,
 
 Thank you for your application for the ${interview?.jobPosition || 'position'} role at AiCruiter.
 
-Please find your interview link below. Kindly note that only the first completed interview submission will be considered.
+Please find your interview link below to access your AI interview. You can complete the interview at your convenience using the link provided. Kindly note that only the first completed interview submission will be considered.
 
-${url}
+Interview link: ${url}
 
-Should you have any questions, please do not hesitate to reply to this email.
+If you have any questions, feel free to reply to this email.
 
 Best regards,
 AiCruiter Recruitment Team
@@ -61,14 +61,14 @@ AiCruiter Recruitment Team
         <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 w-full mt-5 sm:justify-between justify-center">
           <Button
             variant="outline"
-            className="w-full sm:flex-none sm:basis-[48%]"
+            className="w-full cursor-pointer sm:flex-none sm:basis-[48%]"
             onClick={copyLink}
           >
             <Copy className="mr-2 h-4 w-4" />
             Copy Link
           </Button>
           <Button
-            className="w-full sm:flex-none sm:basis-[48%]"
+            className="w-full cursor-pointer sm:flex-none sm:basis-[48%]"
             onClick={onSend}
           >
             <Send className="mr-2 h-4 w-4" />
@@ -78,7 +78,7 @@ AiCruiter Recruitment Team
 
       ) : (
         <Link href={`/interview-responses/${interview?.interview_id}/details`}>
-          <Button className="mt-5 w-full" variant="outline">
+          <Button className="mt-5 w-full cursor-pointer" variant="outline">
             View Detail <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </Link>

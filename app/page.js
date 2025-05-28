@@ -69,7 +69,7 @@ export default function Page() {
       </section>
 
       <section id="features" className="scroll-mt-24 py-20 px-4 text-center">
-        <h2 className="text-3xl font-bold pt-8">Enhance Your Hiring Efficiency</h2>
+        <h2 className="text-3xl font-bold pt-8 pb-2 md:pb-0">Enhance Your Hiring Efficiency</h2>
         <p className="mb-12 mx-auto max-w-[700px] text-gray-500 md:text-xl/relaxed">
           AiCruiter leverages voice AI and data analytics to reduce recruitment friction and help you select the best-fit candidates faster.
         </p>
@@ -99,7 +99,7 @@ export default function Page() {
       </section>
 
       <section id="how-it-works" className="scroll-mt-37 py-20 px-4 bg-gray-50 text-center">
-        <h2 className="text-3xl font-bold">How AiCruiter Simplifies Recruitment</h2>
+        <h2 className="text-3xl font-bold pb-2 md:pb-0">How AiCruiter Simplifies Recruitment</h2>
         <p className="mb-20 mx-auto max-w-[700px] text-gray-500 md:text-xl/relaxed">
           A simple, three-step workflow designed to improve recruitment outcomes
         </p>
@@ -141,7 +141,7 @@ export default function Page() {
       </section>
 
       <section className="py-16 px-4 text-center">
-        <h2 className="text-3xl font-bold">Transform Your Hiring Today</h2>
+        <h2 className="text-3xl font-bold pb-2 md:pb-0">Transform Your Hiring Today</h2>
         <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl/relaxed mb-8">
           Countless companies using AiCruiter's to hire more efficiently and fairly.
         </p>

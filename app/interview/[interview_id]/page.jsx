@@ -8,7 +8,6 @@ import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import React, { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { useUser } from '@/app/provider';
 
 function Interview() {
   const { interview_id } = useParams();
@@ -19,14 +18,6 @@ function Interview() {
   const [loading, setLoading] = useState(false);
   const { interviewInfo, setInterviewInfo } = useContext(InterviewDataContext);
   const router = useRouter();
-
-  const { user, loading: userLoading } = useUser();
-
-  useEffect(() => {
-    if (!userLoading && !user) {
-      router.replace('/auth');
-    }
-  }, [user, userLoading, router]);
 
   useEffect(() => {
     if (interview_id) {
@@ -96,8 +87,6 @@ function Interview() {
     setLoading(false);
   };
 
-  if (userLoading) return <div className='bg-white p-10'>Loading...</div>;
-  if (!user) return null;
 
   return (
     <div className="px-4 sm:px-6 md:px-20 lg:px-32 xl:px-48 mt-7 pb-20 max-w-5xl mx-auto">
@@ -151,7 +140,7 @@ function Interview() {
           <div>
             <h3 className='font-bold mb-1'>Before you begin</h3>
             <ul className="list-disc list-inside text-primary text-sm sm:text-base">
-              <li>Test your camera and microphone</li>
+              <li>Test your microphone here: <a href="https://mictests.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">https://mictests.com</a></li>
               <li>Ensure you have a stable internet connection</li>
               <li>Find a quiet place for interview</li>
             </ul>

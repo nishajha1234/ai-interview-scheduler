@@ -36,12 +36,42 @@ export default function Header() {
       </div>
 
       {menuOpen && (
-        <div className="absolute top-[72px] left-0 w-full bg-white shadow-md border-t flex flex-col items-start px-6 py-4 gap-4 text-sm font-medium text-gray-700 md:hidden z-40">
-          <Link href="/" onClick={() => setMenuOpen(false)} className="hover:text-blue-600">Home</Link>
-          <Link href="/#features" onClick={() => setMenuOpen(false)} className="hover:text-blue-600">Features</Link>
-          <Link href="/#how-it-works" onClick={() => setMenuOpen(false)} className="hover:text-blue-600">How it works</Link>
-          <Link href="/contact" onClick={() => setMenuOpen(false)} className="hover:text-blue-600">Contact</Link>
-          <Button onClick={() => { setMenuOpen(false); router.push('/auth'); }} className="bg-blue-600 text-white px-4 py-2 text-sm rounded-lg hover:bg-blue-700 w-full text-center">
+        <div className="absolute top-[72px] left-0 w-full bg-white shadow-md border-t flex flex-col items-start px-6 py-4 gap-1 text-sm font-medium text-gray-700 md:hidden z-40">
+          <Link
+            href="/"
+            onClick={() => setMenuOpen(false)}
+            className="block w-full px-2 py-2 rounded hover:bg-gray-100"
+          >
+            Home
+          </Link>
+          <Link
+            href="/#features"
+            onClick={() => setMenuOpen(false)}
+            className="block w-full px-2 py-2 rounded hover:bg-gray-100"
+          >
+            Features
+          </Link>
+          <Link
+            href="/#how-it-works"
+            onClick={() => setMenuOpen(false)}
+            className="block w-full px-2 py-2 rounded hover:bg-gray-100"
+          >
+            How it works
+          </Link>
+          <Link
+            href="/contact"
+            onClick={() => setMenuOpen(false)}
+            className="block w-full px-2 py-2 rounded hover:bg-gray-100"
+          >
+            Contact
+          </Link>
+          <Button
+            onClick={() => {
+              setMenuOpen(false);
+              router.push('/auth');
+            }}
+            className="bg-blue-600 text-white px-4 py-2 text-sm rounded-lg hover:bg-blue-700 w-full text-center mt-2"
+          >
             Dashboard
           </Button>
         </div>

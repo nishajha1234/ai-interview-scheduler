@@ -8,34 +8,60 @@ function Provider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+    const fetchUser = async () => {
+      setLoading(true);
+      try {
+        const { data } = await supabase.auth.getUser();
+        const user = data?.user;
 
-      if (user) {
-        let { data: Users, error } = await supabase
+        if (!user) {
+          console.log('User not ready yet');
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
+        const { data: Users, error } = await supabase
           .from('Users')
           .select('*')
           .eq('email', user.email);
 
-        if (Users?.length === 0) {
-          const { data, error } = await supabase.from('Users').insert([
+        if (error) throw error;
+
+        if (!Users || Users.length === 0) {
+          const { data: insertedUser, error: insertError } = await supabase.from('Users').insert([
             {
-              name: user?.user_metadata?.name,
-              email: user?.email,
-              picture: user?.user_metadata?.picture,
+              name: user.user_metadata?.name,
+              email: user.email,
+              picture: user.user_metadata?.picture,
             },
           ]);
-          setUser(data[0]);
+
+          if (insertError) throw insertError;
+
+          setUser(insertedUser[0]);
         } else {
           setUser(Users[0]);
         }
-      } else {
+      } catch (error) {
+        console.error('Error fetching user:', error);
         setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    checkUser();
+    fetchUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        fetchUser();
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   return (
@@ -46,7 +72,11 @@ function Provider({ children }) {
 }
 
 export default Provider;
+
 export const useUser = () => {
   const context = useContext(UserDetailContext);
+  if (!context) {
+    throw new Error('useUser must be used within a UserDetailContext.Provider');
+  }
   return context;
 };

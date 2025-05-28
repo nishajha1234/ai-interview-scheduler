@@ -33,10 +33,10 @@ function StartInterview() {
 
     const toggleMute = () => {
         const vapi = vapiRef.current;
-        if (!vapi || !vapi.call) {  
-    toast("No active call to mute/unmute");
-    return;
-  }
+        if (!vapi || !vapi.call) {
+            toast("No active call to mute/unmute");
+            return;
+        }
         const newMutedState = !muted;
         vapi.setMuted(newMutedState);
         toast(newMutedState ? "Mic muted" : "Mic unmuted");
@@ -124,11 +124,8 @@ function StartInterview() {
         vapi.on("call-end", () => {
             if (!callEndedRef.current) {
                 console.log("Call has ended.");
-                toast('Interview Ended');
+                toastIdRef.current  = toast.loading('Interview Ended. Generating feedback, please wait...');
                 setCallActive(false);
-                setTimeout(() => {
-                    toast.loading("Generating feedback... Please wait", { id: "feedback-toast" });
-                }, 5000);
                 GenerateFeedback();
                 callEndedRef.current = true;
             }
@@ -221,50 +218,49 @@ function StartInterview() {
         }
     }
 
-const GenerateFeedback = async () => {
-    if (feedbackGenerated) return;
-    setFeedbackGenerated(true);
+    const GenerateFeedback = async () => {
+        if (feedbackGenerated) return;
+        setFeedbackGenerated(true);
 
-    try {
-        const result = await axios.post('/api/ai-feedback', {
-            conversation: conversation,
-            jobTitle: interviewInfo?.interviewData?.jobPosition
-        });
+        try {
+            const result = await axios.post('/api/ai-feedback', {
+                conversation: conversation,
+                jobTitle: interviewInfo?.interviewData?.jobPosition
+            });
 
-        console.log(result?.data);
-        const Content = result.data.content;
-        const FINAL_CONTENT = Content.replace('```json', '').replace('```', '');
-        const parsedContent = JSON.parse(FINAL_CONTENT);
+            console.log(result?.data);
+            const Content = result.data.content;
+            const FINAL_CONTENT = Content.replace('```json', '').replace('```', '');
+            const parsedContent = JSON.parse(FINAL_CONTENT);
 
-        const { technicalSkills, communication, problemSolving, experience } = parsedContent?.feedback?.rating;
-        const overallRating = ((technicalSkills + communication + problemSolving + experience) / 4).toFixed(2);
-        parsedContent.feedback.rating.overallRating = parseFloat(overallRating);
+            const { technicalSkills, communication, problemSolving, experience } = parsedContent?.feedback?.rating;
+            const overallRating = ((technicalSkills + communication + problemSolving + experience) / 4).toFixed(2);
+            parsedContent.feedback.rating.overallRating = parseFloat(overallRating);
 
-        const { data, error } = await supabase
-            .from('interview-feedback')
-            .insert([
-                {
-                    userName: interviewInfo?.userName,
-                    userEmail: interviewInfo?.userEmail,
-                    userPhone: interviewInfo?.userPhone,
-                    interview_id: interview_id,
-                    feedback: parsedContent,
-                    recommended: parsedContent.feedback.Recommendation ?? false,
-                },
-            ])
-            .select();
+            const { data, error } = await supabase
+                .from('interview-feedback')
+                .insert([
+                    {
+                        userName: interviewInfo?.userName,
+                        userEmail: interviewInfo?.userEmail,
+                        userPhone: interviewInfo?.userPhone,
+                        interview_id: interview_id,
+                        feedback: parsedContent,
+                        recommended: parsedContent.feedback.Recommendation ?? false,
+                    },
+                ])
+                .select();
+            toast.dismiss(toastIdRef.current);
+            sessionStorage.setItem('interview_started', 'true');
+            router.push('/interview/' + interview_id + "/completed");
 
-        toast.dismiss("feedback-toast");
-        sessionStorage.setItem('interview_started', 'true');
-        router.push('/interview/' + interview_id + "/completed");
-
-    } catch (error) {
-        console.error("Feedback generation failed:", error);
-        toast.dismiss("feedback-toast");
-        toast.error("Interview failed. Please try again or come back tomorrow.");
-        router.replace(`/interview/${interview_id}`);
-    }
-};
+        } catch (error) {
+            console.error("Feedback generation failed:", error);
+            toast.dismiss(toastIdRef.current);
+            toast.error("Interview failed. Please try again or come back tomorrow.");
+            router.replace(`/interview/${interview_id}`);
+        }
+    };
 
     if (authorized === null) return null;
     if (authorized === false) return null;

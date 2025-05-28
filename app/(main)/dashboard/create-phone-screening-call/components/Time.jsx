@@ -70,7 +70,7 @@ const TimeInputWithAMPM = ({ value, onChange }) => {
                     name="ampm"
                     value={time.ampm}
                     onChange={handleAMPMChange}
-                    className="w-16 border p-1 rounded-md"
+                    className="w-16 border p-1 rounded-md cursor-pointer"
                     required
                 >
                     <option value="AM">AM</option>

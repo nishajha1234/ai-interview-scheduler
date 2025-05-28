@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 const InterviewComplete = () => {
   const router = useRouter();
@@ -10,12 +11,10 @@ const InterviewComplete = () => {
 
   useEffect(() => {
   const handlePopState = () => {
-    // Prevent back navigation
-    window.history.pushState(null, '', window.location.href);
-    toast.error("Back navigation is disabled during the interview process.");
-  };
+  router.replace('/interview/' + interview_id);
+};
 
-  window.history.pushState(null, '', window.location.href); // push current page
+  window.history.pushState(null, '', window.location.href);
   window.addEventListener('popstate', handlePopState);
 
   return () => {

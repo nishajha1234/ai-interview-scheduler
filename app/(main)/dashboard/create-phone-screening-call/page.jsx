@@ -220,8 +220,9 @@ export default function CreatePhoneScreening() {
                                 value={form.date}
                                 onChange={handleChange}
                                 min={new Date().toISOString().split('T')[0]}
+                                onClick={e => {if (e.detail > 0) {e.currentTarget.showPicker?.();}}}
                             />
-                        </div>
+                            </div>
                         <div>
                             <TimeInputWithAMPM
                                 value={form.time}
