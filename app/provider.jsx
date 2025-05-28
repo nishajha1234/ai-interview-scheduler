@@ -6,6 +6,7 @@ import React, { useContext, useEffect, useState } from 'react';
 function Provider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [hasFetched, setHasFetched] = useState(false); // Avoid double fetch
 
   const fetchUser = async (sessionUser = null) => {
     setLoading(true);
@@ -13,7 +14,7 @@ function Provider({ children }) {
       const currentUser = sessionUser ?? (await supabase.auth.getUser()).data?.user;
 
       if (!currentUser) {
-        console.log('User not ready yet');
+        console.log('No user found yet');
         setUser(null);
         return;
       }
@@ -45,20 +46,36 @@ function Provider({ children }) {
       setUser(null);
     } finally {
       setLoading(false);
+      setHasFetched(true);
     }
   };
 
   useEffect(() => {
-    fetchUser();
+    // Restore session and then fetch user once
+    const getSessionAndFetch = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN') {
-        fetchUser(session?.user); // Use user directly from session
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setLoading(false);
+      if (session?.user) {
+        await fetchUser(session.user);
+      } else {
+        setLoading(false); // No session means not logged in
       }
-    });
+    };
+
+    getSessionAndFetch();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+          await fetchUser(session.user);
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+          setLoading(false);
+        }
+      }
+    );
 
     return () => {
       authListener?.subscription?.unsubscribe?.();
